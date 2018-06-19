@@ -1,14 +1,6 @@
-﻿// ******************************************************************
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THE CODE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
-// THE CODE OR THE USE OR OTHER DEALINGS IN THE CODE.
-// ******************************************************************
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -39,6 +31,11 @@ namespace Microsoft.Toolkit.Uwp.Notifications
         /// </summary>
         public ToastBindingGeneric BindingGeneric { get; set; }
 
+        /// <summary>
+        /// Gets or sets a binding for shoulder tap notifications, which integrate with My People. See the My People documentation for more info. New in Fall Creators Update.
+        /// </summary>
+        public ToastBindingShoulderTap BindingShoulderTap { get; set; }
+
         internal Element_ToastVisual ConvertToElement()
         {
             var visual = new Element_ToastVisual()
@@ -48,10 +45,20 @@ namespace Microsoft.Toolkit.Uwp.Notifications
                 AddImageQuery = AddImageQuery
             };
 
+            if (BindingGeneric == null)
+            {
+                throw new NullReferenceException("BindingGeneric must be initialized");
+            }
+
             Element_ToastBinding binding = BindingGeneric.ConvertToElement();
 
             // TODO: If a BaseUri wasn't provided, we can potentially optimize the payload size by calculating the best BaseUri
             visual.Bindings.Add(binding);
+
+            if (BindingShoulderTap != null)
+            {
+                visual.Bindings.Add(BindingShoulderTap.ConvertToElement());
+            }
 
             return visual;
         }

@@ -1,18 +1,11 @@
-﻿// ******************************************************************
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THE CODE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
-// THE CODE OR THE USE OR OTHER DEALINGS IN THE CODE.
-// ******************************************************************
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.Toolkit.Uwp.UI.Extensions;
 using Windows.Foundation.Metadata;
 using Windows.UI.Xaml;
@@ -36,6 +29,7 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
 
         private ControlTemplate _previousTemplateUsed;
         private object _navigationView;
+        private object _settingsObject;
 
         private bool UsingNavView => UseNavigationViewWhenPossible && IsNavigationViewSupported;
 
@@ -124,6 +118,15 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
                 _navigationView = navView;
 
                 OnItemsSourceChanged(this, null);
+
+                if (SelectedItem != null)
+                {
+                    NavViewSetSelectedItem(SelectedItem);
+                }
+                else if (SelectedOptionsItem != null)
+                {
+                    NavViewSetSelectedItem(SelectedOptionsItem);
+                }
             }
         }
 
@@ -153,12 +156,35 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
 
                     foreach (var option in options)
                     {
-                        combined.Add(option);
+                        if (!UseNavigationViewSettingsWhenPossible)
+                        {
+                            combined.Add(option);
+                        }
+                        else
+                        {
+                            if (_settingsObject == null && IsSettingsItem(option))
+                            {
+                                _settingsObject = option;
+                                navView.IsSettingsVisible = true;
+                            }
+                            else
+                            {
+                                combined.Add(option);
+                            }
+                        }
                     }
                 }
 
                 navView.MenuItemsSource = combined;
             }
+        }
+
+        private bool IsSettingsItem(object menuItem)
+        {
+            return menuItem.GetType()
+                           .GetProperties()
+                           .Any(p => p.GetValue(menuItem).ToString().IndexOf("setting", StringComparison.OrdinalIgnoreCase) >= 0
+                                  || p.GetValue(menuItem).ToString() == ((char)Symbol.Setting).ToString());
         }
 
         private void NavViewSetSelectedItem(object item)

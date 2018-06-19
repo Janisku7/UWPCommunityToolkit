@@ -1,14 +1,6 @@
-﻿// ******************************************************************
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THE CODE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
-// THE CODE OR THE USE OR OTHER DEALINGS IN THE CODE.
-// ******************************************************************
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Newtonsoft.Json;
@@ -19,15 +11,15 @@ namespace Microsoft.Toolkit.Uwp.Services.Twitter
     /// Twitter Parser.
     /// </summary>
     /// <typeparam name="T">Type to parse in to.</typeparam>
-    public class TwitterParser<T> : Toolkit.Services.IParser<T>
-        where T : Toolkit.Services.SchemaBase
+    public class TwitterParser<T> : Toolkit.Parsers.IParser<T>
+        where T : Toolkit.Parsers.SchemaBase
     {
         /// <summary>
         /// Parse string data into strongly typed list.
         /// </summary>
         /// <param name="data">Input string.</param>
         /// <returns>List of strongly typed objects.</returns>
-        IEnumerable<T> Toolkit.Services.IParser<T>.Parse(string data)
+        IEnumerable<T> Toolkit.Parsers.IParser<T>.Parse(string data)
         {
             if (string.IsNullOrEmpty(data))
             {

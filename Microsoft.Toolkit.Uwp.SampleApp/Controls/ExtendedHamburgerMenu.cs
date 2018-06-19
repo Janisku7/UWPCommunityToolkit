@@ -1,14 +1,6 @@
-// ******************************************************************
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THE CODE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
-// THE CODE OR THE USE OR OTHER DEALINGS IN THE CODE.
-// ******************************************************************
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -480,7 +472,7 @@ namespace Microsoft.Toolkit.Uwp.SampleApp.Controls
                     new ScaleAnimation() { From = "0.9", To = "1", Duration = TimeSpan.FromMilliseconds(400), Delay = staggerDelay }
                 };
 
-                VisualEx.SetNormalizedCenterPoint(itemContainer, "0.5");
+                VisualExtensions.SetNormalizedCenterPoint(itemContainer, "0.5");
 
                 animationCollection.StartAnimation(itemContainer);
             }
@@ -519,7 +511,7 @@ namespace Microsoft.Toolkit.Uwp.SampleApp.Controls
             var centerX = (point.X + (container.ActualWidth / 2)) - x;
             var centerY = (point.Y + (container.ActualHeight / 2)) - y;
 
-            VisualEx.SetCenterPoint(_moreInfoContent, new Vector3((float)centerX, (float)centerY, 0).ToString());
+            VisualExtensions.SetCenterPoint(_moreInfoContent, new Vector3((float)centerX, (float)centerY, 0).ToString());
 
             // _samplePickerGridView.PrepareConnectedAnimation("sample_icon", sample, "SampleIcon");
             _moreInfoContent.DataContext = sample;

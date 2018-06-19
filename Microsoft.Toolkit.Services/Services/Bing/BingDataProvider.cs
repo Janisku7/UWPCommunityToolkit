@@ -1,14 +1,6 @@
-﻿// ******************************************************************
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THE CODE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
-// THE CODE OR THE USE OR OTHER DEALINGS IN THE CODE.
-// ******************************************************************
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,8 +8,6 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Toolkit.Services.Core;
-using Microsoft.Toolkit.Services.Exceptions;
 
 namespace Microsoft.Toolkit.Services.Bing
 {
@@ -40,7 +30,7 @@ namespace Microsoft.Toolkit.Services.Bing
         /// <param name="pageIndex">The zero-based index of the page that corresponds to the items to retrieve.</param>
         /// <param name="parser">IParser implementation for interpreting results.</param>
         /// <returns>Strongly typed list of results.</returns>
-        protected override async Task<IEnumerable<TSchema>> GetDataAsync<TSchema>(BingSearchConfig config, int maxRecords, int pageIndex, IParser<TSchema> parser)
+        protected override async Task<IEnumerable<TSchema>> GetDataAsync<TSchema>(BingSearchConfig config, int maxRecords, int pageIndex, Parsers.IParser<TSchema> parser)
         {
             var countryValue = config.Country.GetStringValue();
             var languageValue = config.Language.GetStringValue();
@@ -66,6 +56,7 @@ namespace Microsoft.Toolkit.Services.Bing
                 case BingQueryType.Search:
                     queryTypeParameter = string.Empty;
                     break;
+
                 case BingQueryType.News:
                     queryTypeParameter = "/news";
                     break;
@@ -94,7 +85,7 @@ namespace Microsoft.Toolkit.Services.Bing
         /// </summary>
         /// <param name="config">Query configuration.</param>
         /// <returns>Strongly typed parser.</returns>
-        protected override IParser<BingResult> GetDefaultParser(BingSearchConfig config)
+        protected override Parsers.IParser<BingResult> GetDefaultParser(BingSearchConfig config)
         {
             return new BingParser();
         }

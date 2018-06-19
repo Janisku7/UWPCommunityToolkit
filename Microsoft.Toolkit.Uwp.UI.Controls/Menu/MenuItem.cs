@@ -1,14 +1,6 @@
-﻿// ******************************************************************
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THE CODE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
-// THE CODE OR THE USE OR OTHER DEALINGS IN THE CODE.
-// ******************************************************************
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -104,6 +96,7 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
             IsOpened = false;
 
             Items.VectorChanged -= Items_VectorChanged;
+            IsEnabledChanged -= MenuItem_IsEnabledChanged;
 
             if (MenuFlyout == null)
             {
@@ -128,6 +121,8 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
                 MenuFlyout.MenuFlyoutPresenterStyle = _parentMenu.MenuFlyoutStyle;
                 ReAddItemsToFlyout();
 
+                IsEnabledChanged += MenuItem_IsEnabledChanged;
+
                 if (_isAccessKeySupported)
                 {
                     FlyoutButton.AccessKey = AccessKey;
@@ -135,7 +130,15 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
                 }
             }
 
+            UpdateEnabledVisualState();
+
             base.OnApplyTemplate();
+        }
+
+        private void MenuItem_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            var menuItemControl = (MenuItem)sender;
+            menuItemControl.UpdateEnabledVisualState();
         }
 
         internal void CalculateBounds()
@@ -334,6 +337,11 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
 
         private void ShowMenuRepositioned(double menuWidth, double menuHeight)
         {
+            if (!IsEnabled || MenuFlyout.Items.Count == 0)
+            {
+                return;
+            }
+
             _menuFlyoutRepositioned = true;
             Point location;
             if (MenuFlyout.Placement == FlyoutPlacementMode.Bottom)
@@ -359,7 +367,7 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
         /// </summary>
         public void ShowMenu()
         {
-            if (!IsEnabled)
+            if (!IsEnabled || MenuFlyout.Items.Count == 0)
             {
                 return;
             }
@@ -498,6 +506,18 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
             if (_originalHeader != null)
             {
                 InternalHeader = _originalHeader.Replace(UnderlineCharacter.ToString(), string.Empty);
+            }
+        }
+
+        internal void UpdateEnabledVisualState()
+        {
+            if (IsEnabled)
+            {
+                VisualStateManager.GoToState(this, "Normal", true);
+            }
+            else
+            {
+                VisualStateManager.GoToState(this, "Disabled", true);
             }
         }
     }

@@ -1,21 +1,14 @@
-﻿// ******************************************************************
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THE CODE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
-// THE CODE OR THE USE OR OTHER DEALINGS IN THE CODE.
-// ******************************************************************
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Toolkit.Uwp.Notifications
 {
     [NotificationXmlElement("toast")]
-    internal sealed class Element_Toast : BaseElement, IElement_ToastActivatable
+    internal sealed class Element_Toast : BaseElement, IElement_ToastActivatable, IElement_AdditionalProperties
     {
         internal const ToastScenario DEFAULT_SCENARIO = ToastScenario.Default;
         internal const Element_ToastActivationType DEFAULT_ACTIVATION_TYPE = Element_ToastActivationType.Foreground;
@@ -63,6 +56,14 @@ namespace Microsoft.Toolkit.Uwp.Notifications
         public Element_ToastActions Actions { get; set; }
 
         public Element_ToastHeader Header { get; set; }
+
+        [NotificationXmlAttribute("hint-toastId")]
+        public string HintToastId { get; set; }
+
+        [NotificationXmlAttribute("hint-people")]
+        public string HintPeople { get; set; }
+
+        public IDictionary<string, string> AdditionalProperties { get; set; }
 
         public static Element_ToastActivationType ConvertActivationType(ToastActivationType publicType)
         {

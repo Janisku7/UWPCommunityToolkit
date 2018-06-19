@@ -1,14 +1,6 @@
-﻿// ******************************************************************
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THE CODE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
-// THE CODE OR THE USE OR OTHER DEALINGS IN THE CODE.
-// ******************************************************************
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -39,9 +31,7 @@ namespace Microsoft.Toolkit.Uwp.UI
 
         private readonly bool _liveShapingEnabled;
 
-        private IEnumerable _source;
-
-        private IList _sourceList;
+        private IList _source;
 
         private Predicate<object> _filter;
 
@@ -66,7 +56,7 @@ namespace Microsoft.Toolkit.Uwp.UI
         /// </summary>
         /// <param name="source">source IEnumerable</param>
         /// <param name="isLiveShaping">Denotes whether or not this ACV should re-filter/re-sort if a PropertyChanged is raised for an observed property.</param>
-        public AdvancedCollectionView(IEnumerable source, bool isLiveShaping = false)
+        public AdvancedCollectionView(IList source, bool isLiveShaping = false)
         {
             _liveShapingEnabled = isLiveShaping;
             _view = new List<object>();
@@ -79,7 +69,7 @@ namespace Microsoft.Toolkit.Uwp.UI
         /// <summary>
         /// Gets or sets the source
         /// </summary>
-        public IEnumerable Source
+        public IList Source
         {
             get
             {
@@ -101,7 +91,6 @@ namespace Microsoft.Toolkit.Uwp.UI
 
                 _source = value;
                 AttachPropertyChangedHandler(_source);
-                _sourceList = value as IList;
 
                 _sourceWeakEventListener?.Detach();
 
@@ -159,7 +148,7 @@ namespace Microsoft.Toolkit.Uwp.UI
                 throw new NotSupportedException("Collection is read-only.");
             }
 
-            _sourceList.Add(item);
+            _source.Add(item);
         }
 
         /// <inheritdoc />
@@ -170,7 +159,7 @@ namespace Microsoft.Toolkit.Uwp.UI
                 throw new NotSupportedException("Collection is read-only.");
             }
 
-            _sourceList.Clear();
+            _source.Clear();
         }
 
         /// <inheritdoc />
@@ -187,7 +176,7 @@ namespace Microsoft.Toolkit.Uwp.UI
                 throw new NotSupportedException("Collection is read-only.");
             }
 
-            _sourceList.Remove(item);
+            _source.Remove(item);
             return true;
         }
 
@@ -195,7 +184,7 @@ namespace Microsoft.Toolkit.Uwp.UI
         public int Count => _view.Count;
 
         /// <inheritdoc />
-        public bool IsReadOnly => _sourceList == null || _sourceList.IsReadOnly;
+        public bool IsReadOnly => _source == null || _source.IsReadOnly;
 
         /// <inheritdoc />
         public int IndexOf(object item) => _view.IndexOf(item);
@@ -208,7 +197,7 @@ namespace Microsoft.Toolkit.Uwp.UI
                 throw new NotSupportedException("Collection is read-only.");
             }
 
-            _sourceList.Insert(index, item);
+            _source.Insert(index, item);
         }
 
         /// <summary>
@@ -281,8 +270,8 @@ namespace Microsoft.Toolkit.Uwp.UI
         /// <exception cref="NotImplementedException">Not implemented yet...</exception>
         public IAsyncOperation<LoadMoreItemsResult> LoadMoreItemsAsync(uint count)
         {
-            var isil = _source as ISupportIncrementalLoading;
-            return isil?.LoadMoreItemsAsync(count);
+            var sil = _source as ISupportIncrementalLoading;
+            return sil?.LoadMoreItemsAsync(count);
         }
 
         /// <summary>
@@ -464,23 +453,23 @@ namespace Microsoft.Toolkit.Uwp.UI
                 return;
             }
 
-            var filterResult = _filter(item);
+            var filterResult = _filter?.Invoke(item);
 
-            if (_observedFilterProperties.Contains(e.PropertyName))
+            if (filterResult.HasValue && _observedFilterProperties.Contains(e.PropertyName))
             {
                 var viewIndex = _view.IndexOf(item);
-                if (viewIndex != -1 && !filterResult)
+                if (viewIndex != -1 && !filterResult.Value)
                 {
                     RemoveFromView(viewIndex, item);
                 }
-                else if (viewIndex == -1 && filterResult)
+                else if (viewIndex == -1 && filterResult.Value)
                 {
-                    var index = _sourceList.IndexOf(item);
+                    var index = _source.IndexOf(item);
                     HandleItemAdded(index, item);
                 }
             }
 
-            if (filterResult && SortDescriptions.Any(sd => sd.PropertyName == e.PropertyName))
+            if ((filterResult ?? true) && SortDescriptions.Any(sd => sd.PropertyName == e.PropertyName))
             {
                 var oldIndex = _view.IndexOf(item);
                 _view.RemoveAt(oldIndex);
@@ -534,23 +523,26 @@ namespace Microsoft.Toolkit.Uwp.UI
 
         private void HandleFilterChanged()
         {
-            for (var index = 0; index < _view.Count; index++)
+            if (_filter != null)
             {
-                var item = _view.ElementAt(index);
-                if (_filter(item))
+                for (var index = 0; index < _view.Count; index++)
                 {
-                    continue;
-                }
+                    var item = _view.ElementAt(index);
+                    if (_filter(item))
+                    {
+                        continue;
+                    }
 
-                RemoveFromView(index, item);
-                index--;
+                    RemoveFromView(index, item);
+                    index--;
+                }
             }
 
             var viewHash = new HashSet<object>(_view);
             var viewIndex = 0;
-            for (var index = 0; index < _sourceList.Count; index++)
+            for (var index = 0; index < _source.Count; index++)
             {
-                var item = _sourceList[index];
+                var item = _source[index];
                 if (viewHash.Contains(item))
                 {
                     viewIndex++;
@@ -659,7 +651,7 @@ namespace Microsoft.Toolkit.Uwp.UI
             }
             else if (_filter != null)
             {
-                if (_sourceList == null)
+                if (_source == null)
                 {
                     HandleSourceChanged();
                     return false;
@@ -669,7 +661,7 @@ namespace Microsoft.Toolkit.Uwp.UI
                 {
                     newViewIndex = 0;
                 }
-                else if (newStartingIndex == _sourceList.Count - 1)
+                else if (newStartingIndex == _source.Count - 1)
                 {
                     newViewIndex = _view.Count - 1;
                 }
@@ -679,7 +671,7 @@ namespace Microsoft.Toolkit.Uwp.UI
                 }
                 else
                 {
-                    for (int i = 0, j = 0; i < _sourceList.Count; i++)
+                    for (int i = 0, j = 0; i < _source.Count; i++)
                     {
                         if (i == newStartingIndex)
                         {
@@ -687,7 +679,7 @@ namespace Microsoft.Toolkit.Uwp.UI
                             break;
                         }
 
-                        if (_view[j] == _sourceList[i])
+                        if (_view[j] == _source[i])
                         {
                             j++;
                         }

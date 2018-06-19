@@ -1,17 +1,10 @@
-﻿// ******************************************************************
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THE CODE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
-// THE CODE OR THE USE OR OTHER DEALINGS IN THE CODE.
-// ******************************************************************
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -91,6 +84,11 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
             DependencyProperty.Register("UseNavigationViewWhenPossible", typeof(bool), typeof(HamburgerMenu), new PropertyMetadata(false, OnUseNavigationViewWhenPossibleChanged));
 
         /// <summary>
+        /// Identifies the <see cref="UseNavigationViewSettingsWhenPossible"/> dependency property
+        /// </summary>
+        public static readonly DependencyProperty UseNavigationViewSettingsWhenPossibleProperty = DependencyProperty.Register("UseNavigationViewSettingsWhenPossible", typeof(bool), typeof(HamburgerMenu), new PropertyMetadata(false));
+
+        /// <summary>
         /// Gets or sets the width of the pane when it's fully expanded.
         /// </summary>
         public double OpenPaneLength
@@ -159,8 +157,27 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
         /// </summary>
         public object ItemsSource
         {
-            get { return GetValue(ItemsSourceProperty); }
-            set { SetValue(ItemsSourceProperty, value); }
+            get
+            {
+                return GetValue(ItemsSourceProperty);
+            }
+
+            set
+            {
+                if (GetValue(ItemsSourceProperty) is INotifyCollectionChanged observableItemsCollection)
+                {
+                    CreateNotifyCollectionChangedEventHandlerIfNotExists();
+                    observableItemsCollection.CollectionChanged -= notifyCollectionChangedEventHandler;
+                }
+
+                if (value is INotifyCollectionChanged newObservableItemsCollection)
+                {
+                    CreateNotifyCollectionChangedEventHandlerIfNotExists();
+                    newObservableItemsCollection.CollectionChanged += notifyCollectionChangedEventHandler;
+                }
+
+                SetValue(ItemsSourceProperty, value);
+            }
         }
 
         /// <summary>
@@ -228,6 +245,17 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
             set { SetValue(UseNavigationViewWhenPossibleProperty, value); }
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the HamburgerMenu should try and automatically detect if any of the OptionsItems represent settings. If they do, the IsSettingsEnabled property of the NavigationView control will be set and the detected item invoked appropriately. (Fall Creators Update and above)
+        /// If an item is not detected automatically, the detection can be triggered by adding a Tag property with the value "setting" to the appropriate OptionsItem.
+        /// This property is ignored if UseNavigationViewWhenPossible is false.
+        /// </summary>
+        public bool UseNavigationViewSettingsWhenPossible
+        {
+            get { return (bool)GetValue(UseNavigationViewSettingsWhenPossibleProperty); }
+            set { SetValue(UseNavigationViewSettingsWhenPossibleProperty, value); }
+        }
+
         private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is HamburgerMenu hamburgerMenu && hamburgerMenu.UsingNavView)
@@ -287,6 +315,17 @@ namespace Microsoft.Toolkit.Uwp.UI.Controls
                 {
                     menu.NavViewSetSelectedItem((int)e.NewValue >= 0 ? options.ElementAt((int)e.NewValue) : null);
                 }
+            }
+        }
+
+        private NotifyCollectionChangedEventHandler notifyCollectionChangedEventHandler;
+
+        private void CreateNotifyCollectionChangedEventHandlerIfNotExists()
+        {
+            if (notifyCollectionChangedEventHandler == null)
+            {
+                var hamburgerMenu = this;
+                notifyCollectionChangedEventHandler = (sender, eventArgs) => { hamburgerMenu.NavViewSetItemsSource(); };
             }
         }
     }
